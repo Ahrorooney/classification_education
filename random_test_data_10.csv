@@ -1,0 +1,11 @@
+student_id,student_name,inv_sum_amount,inv_count_payed,inv_count_start,inv_count_return,inv_max_full_paid,inv_sum_discount,inv_count_distinct_partner_campaign_id,inv_count_distinct_group_id,inv_max_is_b2b,inv_max_loyalty_applied,inv_count_distinct_promocode_id,as_count_distinct_course_id,as_min_finish_start,as_max_finish_start,as_min_result,as_max_result,as_count_partner_campaign_id,OL_count_distinct_dod_id,OL_count_distinct_source,OL_count_distinct_content_type_id,OL_count_distinct_object_id,OL_confirmed,vi_avg_M_1,su_min_speech,su_min_structure,su_max_structure,su_min_interaction,su_max_interaction,su_min_quality,su_max_quality,su_comments
+1,Mia Hernandez,1966,2,0,3,0,1718,0,0,3,0,0,1,14,5,0,12,0,2,1,2,2,3,3,2,5,3,3,5,4,5,5
+2,Liam Thompson,2354,0,1,1,3,2844,1,1,4,2,4,4,24,15,13,13,4,3,0,3,0,4,2,4,5,5,2,3,3,1,2
+3,Ivy Thompson,1542,0,2,3,1,2219,4,0,3,1,3,4,11,19,19,16,1,0,4,1,1,2,1,5,5,5,3,5,1,3,1
+4,Henry Martinez,2711,0,3,1,4,2840,4,1,4,4,1,2,1,14,7,9,3,2,0,0,1,2,2,1,2,3,2,5,5,1,2
+5,Charlie White,2443,4,2,4,0,2147,1,0,0,4,4,4,14,11,11,8,1,4,3,4,4,1,3,5,3,3,5,1,4,3,2
+6,Noah Brown,610,2,2,2,3,2199,4,0,1,2,4,0,18,5,4,18,3,4,4,2,3,2,0,5,2,4,5,4,3,2,1
+7,David Johnson,2778,3,4,1,4,1794,3,1,3,0,4,2,23,22,5,2,0,2,2,2,4,2,0,3,1,4,4,5,2,2,1
+8,Noah Anderson,2318,1,1,2,2,2630,0,4,4,3,1,0,6,16,13,7,4,2,1,4,3,0,1,5,5,1,3,4,4,2,3
+9,Quinn Brown,835,0,3,3,4,2650,2,2,0,3,3,4,26,3,17,0,4,3,2,0,1,4,2,3,4,1,1,1,3,2,1
+10,Frank Garcia,2292,4,1,3,2,2997,4,3,2,4,4,4,10,15,1,6,3,2,4,1,4,0,1,5,3,5,2,5,4,4,3
