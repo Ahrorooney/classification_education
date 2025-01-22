@@ -236,13 +236,13 @@ def main():
     knn_model = train_and_evaluate_knn(x_train_smote, y_train_smote, x_test, y_test)
     ann_model = train_and_evaluate_ann(x_train_smote, y_train_smote, x_test, y_test)
 
-    # if lr_model is not None: plot_roc_curve(lr_model, x_test, y_test, "Logistic Regression")
-    # if dt_model is not None: plot_roc_curve(dt_model, x_test, y_test, "Decision Tree")
-    # if rf_model is not None: plot_roc_curve(rf_model, x_test, y_test, "Random Forest")
-    # if gb_model is not None: plot_roc_curve(gb_model, x_test, y_test, "Gradient Boosting")
-    # if svm_model is not None: plot_roc_curve(svm_model, x_test, y_test, "SVM")
-    # if knn_model is not None: plot_roc_curve(knn_model, x_test, y_test, "KNN")
-    # plot_roc_curve(ann_model, x_test, y_test, "ANN")
+    if lr_model is not None: plot_roc_curve(lr_model, x_test, y_test, "Logistic Regression")
+    if dt_model is not None: plot_roc_curve(dt_model, x_test, y_test, "Decision Tree")
+    if rf_model is not None: plot_roc_curve(rf_model, x_test, y_test, "Random Forest")
+    if gb_model is not None: plot_roc_curve(gb_model, x_test, y_test, "Gradient Boosting")
+    if svm_model is not None: plot_roc_curve(svm_model, x_test, y_test, "SVM")
+    if knn_model is not None: plot_roc_curve(knn_model, x_test, y_test, "KNN")
+    plot_roc_curve(ann_model, x_test, y_test, "ANN")
 
 
 if __name__ == "__main__":
