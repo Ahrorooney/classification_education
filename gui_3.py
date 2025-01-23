@@ -199,11 +199,29 @@ def plot_roc_curve(model, X_test, y_test, model_name):
     plt.legend(loc="lower right")
     plt.show()
 
-def train_models(df):
-    """Trains all models and returns them in a dictionary."""
+def train_models(df, show_process=False):
+    """Trains models and displays processing steps with ROC curves."""
+    original_df = df.copy()
+    if show_process:
+        st.subheader("Data Before Preprocessing")
+        st.write(original_df.head())
+        st.write(f"Shape: {original_df.shape}")
+
     df_processed = preprocess_data(df.copy())
+    if show_process:
+        st.subheader("Data After Preprocessing (Label Encoding)")
+        st.write(df_processed.head())
+
     df_cleaned = remove_outliers_from_data(df_processed)
+    if show_process:
+        st.subheader("Data After Outlier Removal (DBSCAN)")
+        st.write(df_cleaned.head())
+        st.write(f"Shape: {df_cleaned.shape} (Outliers removed)")
+
     df_normalized = normalize_data(df_cleaned)
+    if show_process:
+        st.subheader("Data After Normalization (Min-Max Scaling)")
+        st.write(df_normalized.head())
 
     x = df_normalized.drop('Project_complete', axis=1)
     y = df_normalized['Project_complete']
@@ -213,6 +231,13 @@ def train_models(df):
     smote = SMOTE(random_state=42, k_neighbors=3)
     x_train_smote, y_train_smote = smote.fit_resample(x_train, y_train)
 
+    if show_process:
+        st.subheader("Training Data After SMOTE")
+        st.write(pd.DataFrame(x_train_smote).head())
+        st.write(f"Shape of X_train after SMOTE: {x_train_smote.shape}")
+        st.write(f"Shape of y_train after SMOTE: {y_train_smote.shape}")
+
+    # Define models HERE, before the if show_process block
     models = {
         "Logistic Regression": train_and_evaluate_logistic_regression(x_train_smote, y_train_smote, x_test, y_test),
         "Decision Tree": train_and_evaluate_decision_tree(x_train_smote, y_train_smote, x_test, y_test),
@@ -222,7 +247,28 @@ def train_models(df):
         "KNN": train_and_evaluate_knn(x_train_smote, y_train_smote, x_test, y_test),
         "ANN": train_and_evaluate_ann(x_train_smote, y_train_smote, x_test, y_test)
     }
-    return models, x_test, y_test, x_train.columns  # return columns for input
+
+    if show_process:
+        st.subheader("Model Evaluation on Test Data")
+        for model_name, model in models.items():
+            if hasattr(model, "predict_proba"):
+                y_pred_proba = model.predict_proba(x_test)[:, 1]
+            else:
+                y_pred_proba = model.predict(x_test).flatten()
+
+            roc_auc = roc_auc_score(y_test, y_pred_proba)
+            st.write(f"{model_name} ROC AUC: {roc_auc:.4f}")
+
+            # Display ROC curve immediately below the text
+            fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
+            fig = go.Figure(data=[
+                go.Scatter(x=fpr, y=tpr, name=f'{model_name} (area = %0.2f)' % roc_auc)])  # Use name instead of label
+            fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode='lines', line=dict(dash='dash'), showlegend=False))
+            fig.update_layout(title=f'ROC Curve - {model_name}', xaxis_title='False Positive Rate',
+                              yaxis_title='True Positive Rate', width=400, height=400)
+            st.plotly_chart(fig)
+
+    return models, x_test, y_test, x_train.columns, original_df
 
 
 def make_recommendations(prediction, model_name, student_data, feature_means):
@@ -328,23 +374,18 @@ def main():
     uploaded_file = st.file_uploader("Upload CSV (Training Data)", type=["csv"])
     if uploaded_file is not None:
         try:
-            train_df = pd.read_csv(uploaded_file)
-            models, x_test, y_test, input_cols = train_models(train_df)
+            df = pd.read_csv(uploaded_file)
+            show_process = st.checkbox("Show Data Processing Steps", value=True)
+            models, x_test, y_test, input_cols, original_df = train_models(df, show_process)
             st.write("Models trained successfully!")
 
-            feature_means = train_df[input_cols].mean()  # calculate means for comparison
+            feature_means = original_df[input_cols].mean()
 
             new_data_file = st.file_uploader("Upload CSV (New Student Data)", type=["csv"])
             if new_data_file is not None:
                 new_df = pd.read_csv(new_data_file)
-
                 if 'Project_complete' in new_df.columns:
-                    new_df = new_df.drop(columns=['Project_complete'])  # drop if it exists
-
-                student_data_list = new_df.to_dict(orient='records')  # list of dictionaries
-                ids_names = new_df[['student_id',
-                                    'student_name']] if 'student_id' in new_df.columns and 'student_name' in new_df.columns else None
-
+                    new_df = new_df.drop(columns=['Project_complete'])
                 if 'student_id' in new_df.columns:
                     new_df = new_df.drop(columns=['student_id'])
                 if 'student_name' in new_df.columns:
@@ -355,6 +396,7 @@ def main():
                     selected_model = st.selectbox("Select a model", list(models.keys()))
                     model = models[selected_model]
                     predictions = model.predict(new_df)
+                    student_data_list = new_df.to_dict(orient='records')
                     all_predictions = []
 
                     for i, prediction in enumerate(predictions):
@@ -362,10 +404,10 @@ def main():
                         make_recommendations(prediction, selected_model, student_data, feature_means)
                         all_predictions.append(prediction)
 
-                    plot_roc_curve(model, x_test, y_test, selected_model)
-                    st.pyplot()
+                    analyze_results(np.array(all_predictions), student_data_list, feature_means)
 
-                    analyze_results(np.array(all_predictions), student_data_list, feature_means)  # analyze results
+                    # plot_roc_curve(model, x_test, y_test, selected_model)
+                    # st.pyplot()
 
                 except Exception as e:
                     st.error(f"Error during prediction: {e}")
