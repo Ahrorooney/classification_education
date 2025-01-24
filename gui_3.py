@@ -272,19 +272,18 @@ def train_models(df, show_process=False):
 
 
 def make_recommendations(prediction, model_name, student_data, feature_means):
-    """Provides detailed recommendations with charts and comparisons."""
+    """Provides recommendations with a summary and detailed breakdown."""
     student_name = student_data.get('student_name', "Unknown Student")
     student_id = student_data.get('student_id', "N/A")
 
-    with st.expander(f"**Recommendations for: {student_name} (ID: {student_id})**"):  # Collapsible section
+    with st.expander(f"**Recommendations for: {student_name} (ID: {student_id})**"):
         if prediction == 1:
             st.success(f"Predicted to complete the project (using {model_name}).")
-            st.write("Maintaining Performance:")
-            st.write("- Continue current study habits. Your current metrics suggest good engagement.")
+            st.write("Overall, your metrics suggest good engagement. Continue your current study habits.")
         else:
             st.warning(f"Predicted to NOT complete the project (using {model_name}).")
-            st.write("Areas for Improvement:")
 
+            below_avg_features = []
             features = []
             student_values = []
             average_values = []
@@ -300,6 +299,14 @@ def make_recommendations(prediction, model_name, student_data, feature_means):
                         student_values.append(value)
                         average_values.append(mean_val)
                         comparison_texts.append(comparison_text)
+                        if comparison_text == "below average":
+                            below_avg_features.append(feature)
+
+            if below_avg_features:
+                st.write("Summary of Areas for Improvement:")
+                st.write(f"Your performance is below average in the following areas: {', '.join(below_avg_features)}.")
+            else:
+                st.write("All your metrics are above or at the average level.")
 
             # Bar Chart Comparison using Plotly
             fig = go.Figure(data=[
@@ -309,18 +316,18 @@ def make_recommendations(prediction, model_name, student_data, feature_means):
             fig.update_layout(barmode='group', title="Feature Comparison", yaxis_title="Value")
             st.plotly_chart(fig)
 
-            for i, feature in enumerate(features):
-                st.write(f"- Your **{feature}** ({student_values[i]:.2f}) is {comparison_texts[i]} compared to the average ({average_values[i]:.2f}).")
-                if comparison_texts[i] == "below average":
-                    st.write(f"  * Consider focusing on improving {feature} to enhance your project completion chances.")
+            if below_avg_features: #Only show detailed breakdown if there are below average features
+                st.write("Detailed Breakdown:")
+                for i, feature in enumerate(features):
+                    st.write(f"- Your **{feature}** ({student_values[i]:.2f}) is {comparison_texts[i]} compared to the average ({average_values[i]:.2f}).")
+                    if comparison_texts[i] == "below average":
+                        st.write(f"  * Consider focusing on improving {feature} to enhance your project completion chances.")
 
             st.write("Additional Suggestions:")
             st.write("- Seek extra help from instructors or tutors.")
             st.write("- Review course materials regularly.")
             st.write("- Form study groups with classmates.")
             st.write("- Improve time management skills.")
-
-        st.write("---")
 
 def analyze_results(predictions, student_data_list, feature_means):
     """Analyzes the results and provides a summary for managers."""
@@ -386,6 +393,11 @@ def main():
                 new_df = pd.read_csv(new_data_file)
                 if 'Project_complete' in new_df.columns:
                     new_df = new_df.drop(columns=['Project_complete'])
+
+                student_data_list = new_df.to_dict(orient='records')
+                ids_names = new_df[['student_id',
+                                    'student_name']] if 'student_id' in new_df.columns and 'student_name' in new_df.columns else None
+
                 if 'student_id' in new_df.columns:
                     new_df = new_df.drop(columns=['student_id'])
                 if 'student_name' in new_df.columns:
@@ -396,7 +408,6 @@ def main():
                     selected_model = st.selectbox("Select a model", list(models.keys()))
                     model = models[selected_model]
                     predictions = model.predict(new_df)
-                    student_data_list = new_df.to_dict(orient='records')
                     all_predictions = []
 
                     for i, prediction in enumerate(predictions):
